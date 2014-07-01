@@ -5,6 +5,7 @@ var mkdirp = require('mkdirp');
 var fs = require('fs');
 var child_process = require('child_process');
 var cluster = require('cluster');
+var csv = require('fast-csv');
 var numCPUs = require('os').cpus().length;
 
 var program = require('commander');
@@ -65,9 +66,9 @@ if (cluster.isMaster) {
     if (typeof outputStreams[name] == 'undefined') {
       outputStreams[name] = fs.createWriteStream(dirName+'/'+name+'.csv');
       outputBuffers[name] = '';
-      outputBuffers[name] += columnNames.join(program.outputDelimiter)+'\n';
+      outputBuffers[name] += csv.writeToString([columnNames], {delimiter: program.outputDelimiter});
     }
-    outputBuffers[name] += data.join(program.outputDelimiter)+'\n';
+    outputBuffers[name] += '\n'+csv.writeToString([data], {delimiter: program.delimiter});
     if (outputBuffers[name].length > 1000000) {
       outputStreams[name].write(outputBuffers[name]);
       outputBuffers[name] = '';
@@ -77,32 +78,24 @@ if (cluster.isMaster) {
   async.each(inputFiles, function(inputFile, done){
     mkdirp.sync('tmp/'+inputFile);
 
-    var i = 0;
     var columnNames;
 
     var targetIndex;
 
-    var stream = fs.createReadStream(inputFile, 'utf8');
-    var workingBuffer = '';
-    stream.on('data', function(chunk){
-      workingBuffer += chunk;
-      var lines = workingBuffer.split('\n');
-      while (lines.length > 1) {
-        var line = lines.shift();
-        var data = line.split(program.delimiter);
+    var stream = csv.fromPath(inputFile);
 
-        if (i === 0) {
-          columnNames = data;
-          targetIndex = columnNames.indexOf(program.column);
-          if (targetIndex == -1) {
-            throw new Error('Column "'+program.column+'" not found');
-          }
-        } else {
-          writeFile('tmp/'+inputFile, columnNames, data[targetIndex], data);
+    var i = 0;
+    stream.on('record', function(data){
+      if (i == 0) {
+        columnNames = data;
+        targetIndex = columnNames.indexOf(program.column);
+        if (targetIndex == -1) {
+          throw new Error('Column "'+program.column+'" not found');
         }
-        i++;
+      } else {
+        writeFile('tmp/'+inputFile, columnNames, data[targetIndex], data);
       }
-      workingBuffer = lines[0];
+      i++;
     });
 
     stream.on('end', function(){
@@ -119,6 +112,6 @@ if (cluster.isMaster) {
     if (err) {
       console.error(err);
     }
-    process.exit(0);
+    cluster.worker.disconnect();
   });
 }
