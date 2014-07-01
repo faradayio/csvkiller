@@ -25,9 +25,9 @@ Options:
   -h, --help                           output usage information
   -V, --version                        output the version number
   -c, --column [name]                  Which column to segment by
-  -o, --output-directory [directory]   The directory where output goes [output]
-  -d, --delimiter [delimiter]          How to split up lines in the input file [,]
-  -od, --output-delimiter [delimiter]  How to split up lines in the output files [,]
+  -d, --delimiter [delimiter]          How to split up lines in the input file (use TAB for tab-delimited) [,]
+  -od, --output-delimiter [delimiter]  How to split up lines in the output files (use TAB for tab-delimited) [,]
+  -b, --buffer-size [characters]       Number of characters can be in the in-memory file buffer before it's written to the disk [1000000]
 ```
 
 #Examples
