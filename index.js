@@ -82,7 +82,7 @@ if (cluster.isMaster) {
 
     var targetIndex;
 
-    var stream = fs.createReadStream(inputFile, 'LATIN1');
+    var stream = fs.createReadStream(inputFile, 'utf8');
     var workingBuffer = '';
     stream.on('data', function(chunk){
       workingBuffer += chunk;
