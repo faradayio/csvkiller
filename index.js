@@ -29,10 +29,10 @@ if (!inputFiles.length) {
   process.exit(1);
 }
 
-if (program.delimiter == 'TAB') {
+if (program.delimiter.toLowerCase() == 'tab') {
   program.delimiter = '\t';
 }
-if (program.outputDelimiter == 'TAB') {
+if (program.outputDelimiter.toLowerCase() == 'tab') {
   program.outputDelimiter = '\t';
 }
 
@@ -68,7 +68,7 @@ if (cluster.isMaster) {
       outputBuffers[name] = '';
       outputBuffers[name] += csv.writeToString([columnNames], {delimiter: program.outputDelimiter});
     }
-    outputBuffers[name] += '\n'+csv.writeToString([data], {delimiter: program.delimiter});
+    outputBuffers[name] += '\n'+csv.writeToString([data], {delimiter: program.outputDelimiter});
     if (outputBuffers[name].length > 1000000) {
       outputStreams[name].write(outputBuffers[name]);
       outputBuffers[name] = '';
@@ -82,7 +82,7 @@ if (cluster.isMaster) {
 
     var targetIndex;
 
-    var stream = csv.fromPath(inputFile);
+    var stream = csv.fromPath(inputFile, {delimiter: program.delimiter});
 
     var i = 0;
     stream.on('record', function(data){
