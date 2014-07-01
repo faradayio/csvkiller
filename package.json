@@ -1,13 +1,17 @@
 {
   "name": "csvkiller",
   "description": "Segment CSV files by any column",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "maintainers": [
     {
       "name": "Tristan Davies",
       "email": "tristan@faraday.io"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/faradayio/csvkiller"
+  },
   "preferGlobal": "true",
   "bin": {
     "csvkiller": "index.js"
