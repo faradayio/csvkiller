@@ -13,8 +13,8 @@ program
   .version('0.0.1')
   .usage('-c [column] [options] [file ...]')
   .option('-c, --column [name]', 'Which column to segment by')
-  .option('-d, --delimiter [delimiter]', 'How to split up lines in the input file [,]', ',')
-  .option('-od, --output-delimiter [delimiter]', 'How to split up lines in the output files [,]', ',')
+  .option('-d, --delimiter [delimiter]', 'How to split up lines in the input file (use TAB for tab-delimited) [,]', ',')
+  .option('-od, --output-delimiter [delimiter]', 'How to split up lines in the output files (use TAB for tab-delimited) [,]', ',')
   .option('-b, --buffer-size [characters]', 'Number of characters can be in the in-memory file buffer before it\'s written to the disk [1000000]', parseInt, 1000000)
   .parse(process.env.ARGS ? JSON.parse(process.env.ARGS) : process.argv);
 
