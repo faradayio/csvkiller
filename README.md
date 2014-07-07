@@ -5,7 +5,7 @@ Segment CSV files by any column
 
 #Dependencies
 
-nodejs and npm
+nodejs, npm, and bash
 
 #Installation
 
