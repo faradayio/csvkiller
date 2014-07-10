@@ -10,14 +10,28 @@ var numCPUs = require('os').cpus().length;
 
 var program = require('commander');
 
+var package = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+
 program
-  .version('0.0.1')
+  .version(package.version)
   .usage('-c [column] [options] [file ...]')
   .option('-c, --column [name]', 'Which column to segment by')
   .option('-d, --delimiter [delimiter]', 'How to split up lines in the input file (use TAB for tab-delimited) [,]', ',')
   .option('-od, --output-delimiter [delimiter]', 'How to split up lines in the output files (use TAB for tab-delimited) [,]', ',')
-  .option('-b, --buffer-size [characters]', 'Number of characters can be in the in-memory file buffer before it\'s written to the disk [1000000]', parseInt, 1000000)
+  .option('-b, --buffer-size [characters]', 'Max characters in the output buffer [1000000]', parseInt, 1000000)
+  .option('--case-sensitivity [uppercase|lowercase]', 'Case handling of the segmentation column [none]', 'none')
   .parse(process.env.ARGS ? JSON.parse(process.env.ARGS) : process.argv);
+
+if (!program.caseSensitivity) {
+  program.caseSensitivity = 'none';
+}
+if (program.caseSensitivity === true) {
+  program.caseSensitivity = 'uppercase';
+}
+if (program.caseSensitivity != 'uppercase' && program.caseSensitivity != 'lowercase' && program.caseSensitivity != 'none') {
+  console.error('Invalid case sensitivity flag. Use uppercase, lowercase, none, or simply leave it out.');
+  program.help();
+}
 
 if (!program.column) {
   console.error('Please specify a column');
