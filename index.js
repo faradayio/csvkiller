@@ -19,17 +19,12 @@ program
   .option('-d, --delimiter [delimiter]', 'How to split up lines in the input file (use TAB for tab-delimited) [,]', ',')
   .option('-od, --output-delimiter [delimiter]', 'How to split up lines in the output files (use TAB for tab-delimited) [,]', ',')
   .option('-b, --buffer-size [characters]', 'Max characters in the output buffer [1000000]', parseInt, 1000000)
-  .option('--case-sensitivity [uppercase|lowercase]', 'Case handling of the segmentation column [none]', 'none')
+  .option('-u, --uppercase', 'Case insensitive column matching, write to OUTPUT.csv instead of Output.csv')
+  .option('-l, --lowercase', 'Case insensitive column matching, write to output.csv instead of Output.csv')
   .parse(process.env.ARGS ? JSON.parse(process.env.ARGS) : process.argv);
 
-if (!program.caseSensitivity) {
-  program.caseSensitivity = 'none';
-}
-if (program.caseSensitivity === true) {
-  program.caseSensitivity = 'uppercase';
-}
-if (program.caseSensitivity != 'uppercase' && program.caseSensitivity != 'lowercase' && program.caseSensitivity != 'none') {
-  console.error('Invalid case sensitivity flag. Use uppercase, lowercase, none, or simply leave it out.');
+if (program.columnUppercase && program.columnLowercase) {
+  console.error('I can\'t upcase and downcase the segmentation column at the same time. Pick one.');
   program.help();
 }
 
@@ -107,7 +102,13 @@ if (cluster.isMaster) {
           throw new Error('Column "'+program.column+'" not found');
         }
       } else {
-        writeFile('tmp/'+inputFile, columnNames, data[targetIndex], data);
+        var targetCell = data[targetIndex];
+        if (program.columnUppercase) {
+          targetCell = targetCell.toUpperCase();
+        } else if (program.columnLowercase) {
+          targetCell = targetCell.toLowerCase();
+        }
+        writeFile('tmp/'+inputFile, columnNames, targetCell, data);
       }
       i++;
     });
