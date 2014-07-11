@@ -1,14 +1,14 @@
 for f in $(ls $1/*/*.csv)
 do
-  ATTR=$(echo $f | awk -F '[/.]' '{print $(NF-1)}' -)
-  head -n 1 $f > $2/${ATTR}.csv
+  NAME=$(basename $f)
+  head -n 1 $f > $2/${NAME}
 done
 
 for f in $(ls $1/*/*.csv)
 do
   echo "combining $f"
-  ATTR=$(echo $f | awk -F '[/.]' '{print $(NF-1)}' -)
-  tail -n +2 $f >> $2/${ATTR}.csv
+  NAME=$(basename $f)
+  tail -n +2 $f >> $2/${NAME}
   rm $f;
 done
 
