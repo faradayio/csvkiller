@@ -11,7 +11,7 @@ var numCPUs = require('os').cpus().length;
 
 var program = require('commander');
 
-var package = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+var package = JSON.parse(fs.readFileSync(__dirname+'/package.json', 'utf8'));
 
 program
   .version(package.version)
