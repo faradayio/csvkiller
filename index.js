@@ -19,12 +19,19 @@ program
   .option('-c, --column [name]', 'Which column to segment by')
   .option('-d, --delimiter [delimiter]', 'How to split up lines in the input file (use TAB for tab-delimited) [,]', ',')
   .option('-o, --output-directory [path]', 'Output directory [./output]', './output')
-  .option('-t, --tmp-directory [path]', 'Output directory [./tmp]', './tmp')
+  .option('-t, --tmp-directory [path]', 'Temporary file directory [./tmp]', './tmp')
   .option('-od, --output-delimiter [delimiter]', 'How to split up lines in the output files (use TAB for tab-delimited) [,]', ',')
   .option('-b, --buffer-size [characters]', 'Max characters in the output buffer [1000000]', parseInt, 1000000)
   .option('-u, --uppercase', 'Case insensitive column matching, write to OUTPUT.csv instead of Output.csv')
   .option('-l, --lowercase', 'Case insensitive column matching, write to output.csv instead of Output.csv')
+  .option('-v, --verbose', 'Verbose output')
   .parse(process.env.ARGS ? JSON.parse(process.env.ARGS) : process.argv);
+
+var logVerbose = function(){
+  if (program.verbose) {
+    console.log.apply(console, arguments);
+  }
+};
 
 if (!program.outputDirectory) {
   console.error('Invalid output directory');
@@ -89,10 +96,12 @@ if (cluster.isMaster) {
   var outputBuffers = {};
   var writeFile = function(dirName, columnNames, name, data){
     if (typeof outputStreams[name] == 'undefined') {
+      logVerbose('opening write stream '+dirName+'/'+name+'.csv');
       outputStreams[name] = fs.createWriteStream(dirName+'/'+name+'.csv');
       outputBuffers[name] = '';
       outputBuffers[name] += csv.writeToString([columnNames], {delimiter: program.outputDelimiter});
     }
+    logVerbose('writing line to '+name+'.csv', data);
     outputBuffers[name] += '\n'+csv.writeToString([data], {delimiter: program.outputDelimiter});
     if (outputBuffers[name].length > 1000000) {
       outputStreams[name].write(outputBuffers[name]);
@@ -114,9 +123,12 @@ if (cluster.isMaster) {
       if (i == 0) {
         columnNames = data;
         targetIndex = columnNames.indexOf(program.column);
+
         if (targetIndex == -1) {
           throw new Error('Column "'+program.column+'" not found');
         }
+
+        logVerbose(inputFile, 'using column', program.column, '(#'+targetIndex+')');
       } else {
         var targetCell = data[targetIndex];
         if (program.columnUppercase) {
