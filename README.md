@@ -26,8 +26,12 @@ Options:
   -V, --version                        output the version number
   -c, --column [name]                  Which column to segment by
   -d, --delimiter [delimiter]          How to split up lines in the input file (use TAB for tab-delimited) [,]
+  -o, --output-directory [path]        Output directory [./output]
+  -t, --tmp-directory [path]           Output directory [./tmp]
   -od, --output-delimiter [delimiter]  How to split up lines in the output files (use TAB for tab-delimited) [,]
-  -b, --buffer-size [characters]       Number of characters can be in the in-memory file buffer before it's written to the disk [1000000]
+  -b, --buffer-size [characters]       Max characters in the output buffer [1000000]
+  -u, --uppercase                      Case insensitive column matching, write to OUTPUT.csv instead of Output.csv
+  -l, --lowercase                      Case insensitive column matching, write to output.csv instead of Output.csv
 ```
 
 #Examples

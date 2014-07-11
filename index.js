@@ -3,6 +3,7 @@
 var async = require('async');
 var mkdirp = require('mkdirp');
 var fs = require('fs');
+var path = require('path');
 var child_process = require('child_process');
 var cluster = require('cluster');
 var csv = require('fast-csv');
@@ -17,11 +18,28 @@ program
   .usage('-c [column] [options] [file ...]')
   .option('-c, --column [name]', 'Which column to segment by')
   .option('-d, --delimiter [delimiter]', 'How to split up lines in the input file (use TAB for tab-delimited) [,]', ',')
+  .option('-o, --output-directory [path]', 'Output directory [./output]', './output')
+  .option('-t, --tmp-directory [path]', 'Output directory [./tmp]', './tmp')
   .option('-od, --output-delimiter [delimiter]', 'How to split up lines in the output files (use TAB for tab-delimited) [,]', ',')
   .option('-b, --buffer-size [characters]', 'Max characters in the output buffer [1000000]', parseInt, 1000000)
   .option('-u, --uppercase', 'Case insensitive column matching, write to OUTPUT.csv instead of Output.csv')
   .option('-l, --lowercase', 'Case insensitive column matching, write to output.csv instead of Output.csv')
   .parse(process.env.ARGS ? JSON.parse(process.env.ARGS) : process.argv);
+
+if (!program.outputDirectory) {
+  console.error('Invalid output directory');
+  program.help();
+}
+if (!program.tmpDirectory) {
+  console.error('Invalid tmp directory');
+  program.help();
+}
+
+program.outputDirectory = path.resolve(program.outputDirectory);
+program.tmpDirectory = path.resolve(program.tmpDirectory);
+
+mkdirp.sync(program.tmpDirectory);
+mkdirp.sync(program.outputDirectory);
 
 if (program.columnUppercase && program.columnLowercase) {
   console.error('I can\'t upcase and downcase the segmentation column at the same time. Pick one.');
@@ -47,8 +65,6 @@ if (program.outputDelimiter.toLowerCase() == 'tab') {
 
 if (cluster.isMaster) {
 
-  mkdirp.sync('tmp');
-
   var fileQueue = async.queue(function(fileName, callback){
     console.log('Creating worker for '+fileName);
     var worker = cluster.fork({
@@ -66,7 +82,7 @@ if (cluster.isMaster) {
   });
 
   fileQueue.drain = function(){
-    child_process.spawn('bash', [__dirname+'/combiner.sh'], { stdio: 'inherit' });
+    child_process.spawn('bash', [__dirname+'/combiner.sh', program.tmpDirectory, program.outputDirectory], { stdio: 'inherit' });
   };
 } else {
   var outputStreams = {};
@@ -85,7 +101,7 @@ if (cluster.isMaster) {
   };
 
   async.each(inputFiles, function(inputFile, done){
-    mkdirp.sync('tmp/'+inputFile);
+    mkdirp.sync(program.tmpDirectory+'/'+inputFile);
 
     var columnNames;
 
@@ -108,7 +124,7 @@ if (cluster.isMaster) {
         } else if (program.columnLowercase) {
           targetCell = targetCell.toLowerCase();
         }
-        writeFile('tmp/'+inputFile, columnNames, targetCell, data);
+        writeFile(program.tmpDirectory+'/'+inputFile, columnNames, targetCell, data);
       }
       i++;
     });
