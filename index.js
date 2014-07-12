@@ -85,7 +85,7 @@ if (cluster.isMaster) {
   }, numCPUs);
 
   inputFiles.forEach(function(fileName){
-    fileQueue.push(fileName);
+    fileQueue.push(path.resolve(fileName));
   });
 
   fileQueue.drain = function(){
@@ -110,7 +110,7 @@ if (cluster.isMaster) {
   };
 
   async.each(inputFiles, function(inputFile, done){
-    mkdirp.sync(program.tmpDirectory+'/'+inputFile);
+    mkdirp.sync(program.tmpDirectory+'/'+path.basename(inputFile));
 
     var columnNames;
 
@@ -136,7 +136,7 @@ if (cluster.isMaster) {
         } else if (program.columnLowercase) {
           targetCell = targetCell.toLowerCase();
         }
-        writeFile(program.tmpDirectory+'/'+inputFile, columnNames, targetCell, data);
+        writeFile(program.tmpDirectory+'/'+path.basename(inputFile), columnNames, targetCell, data);
       }
       i++;
     });
