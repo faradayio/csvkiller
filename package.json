@@ -1,7 +1,7 @@
 {
   "name": "csvkiller",
   "description": "Segment CSV files by any column",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "maintainers": [
     {
       "name": "Tristan Davies",
