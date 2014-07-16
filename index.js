@@ -7,7 +7,8 @@ var path = require('path');
 var child_process = require('child_process');
 var cluster = require('cluster');
 var csv = require('fast-csv');
-var numCPUs = require('os').cpus().length;
+var os = require('os');
+var numCPUs = os.cpus().length;
 
 var program = require('commander');
 
@@ -19,7 +20,6 @@ program
   .option('-c, --column [name]', 'Which column to segment by')
   .option('-d, --delimiter [delimiter]', 'How to split up lines in the input file (use TAB for tab-delimited) [,]', ',')
   .option('-o, --output-directory [path]', 'Output directory [./output]', './output')
-  .option('-t, --tmp-directory [path]', 'Temporary file directory [./tmp]', './tmp')
   .option('-od, --output-delimiter [delimiter]', 'How to split up lines in the output files (use TAB for tab-delimited) [,]', ',')
   .option('-b, --buffer-size [characters]', 'Max characters in the output buffer [1000000]', parseInt, 1000000)
   .option('-u, --uppercase', 'Case insensitive column matching, write to OUTPUT.csv instead of Output.csv')
@@ -33,19 +33,34 @@ var logVerbose = function(){
   }
 };
 
+var randomDirectoryName = function(){
+  //something like csvkiller_wwjzky9z8xx8yqfr
+  return 'csvkiller_'+Math.random().toString(36).substr(2);
+};
+
+var makeTempDirectory = function(){
+  var parentDirectory = os.tmpdir();
+
+  var tmpDirectory = parentDirectory+'/'+randomDirectoryName();
+
+  mkdirp.sync(tmpDirectory);
+
+  return tmpDirectory;
+};
+
 if (!program.outputDirectory) {
   console.error('Invalid output directory');
   program.help();
 }
-if (!program.tmpDirectory) {
-  console.error('Invalid tmp directory');
-  program.help();
-}
 
 program.outputDirectory = path.resolve(program.outputDirectory);
-program.tmpDirectory = path.resolve(program.tmpDirectory);
 
-mkdirp.sync(program.tmpDirectory);
+if (typeof process.env.TMP_DIR == 'undefined') {
+  program.tmpDirectory = makeTempDirectory();
+} else {
+  program.tmpDirectory = process.env.TMP_DIR;
+}
+
 mkdirp.sync(program.outputDirectory);
 
 if (program.columnUppercase && program.columnLowercase) {
@@ -76,6 +91,7 @@ if (cluster.isMaster) {
     console.log('Creating worker for '+fileName);
     var worker = cluster.fork({
       ARGS: JSON.stringify(process.argv),
+      TMP_DIR: program.tmpDirectory,
       FILENAME: fileName
     });
     worker.on('exit', function(code, signal){
