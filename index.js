@@ -55,10 +55,10 @@ if (!program.outputDirectory) {
 
 program.outputDirectory = path.resolve(program.outputDirectory);
 
-if (typeof process.env.TMP_DIR == 'undefined') {
+if (typeof process.env.__CSVKILLER_TMP_DIR == 'undefined') {
   program.tmpDirectory = makeTempDirectory();
 } else {
-  program.tmpDirectory = process.env.TMP_DIR;
+  program.tmpDirectory = process.env.__CSVKILLER_TMP_DIR;
 }
 
 mkdirp.sync(program.outputDirectory);
@@ -91,7 +91,7 @@ if (cluster.isMaster) {
     console.log('Creating worker for '+fileName);
     var worker = cluster.fork({
       ARGS: JSON.stringify(process.argv),
-      TMP_DIR: program.tmpDirectory,
+      __CSVKILLER_TMP_DIR: program.tmpDirectory,
       FILENAME: fileName
     });
     worker.on('exit', function(code, signal){
