@@ -12,6 +12,7 @@ do
   echo "combining $f"
   NAME=$(basename $f)
   tail -n +2 $f >> $2/${NAME}
+  tail -c1 $2/${NAME} | read -r _ || echo >> $2/${NAME}
   rm $f;
 done
 
