@@ -63,7 +63,7 @@ if (typeof process.env.__CSVKILLER_TMP_DIR == 'undefined') {
 
 mkdirp.sync(program.outputDirectory);
 
-if (program.columnUppercase && program.columnLowercase) {
+if (program.uppercase && program.lowercase) {
   console.error('I can\'t upcase and downcase the segmentation column at the same time. Pick one.');
   program.help();
 }
@@ -147,9 +147,9 @@ if (cluster.isMaster) {
         logVerbose(inputFile, 'using column', program.column, '(#'+targetIndex+')');
       } else {
         var targetCell = data[targetIndex];
-        if (program.columnUppercase) {
+        if (program.uppercase) {
           targetCell = targetCell.toUpperCase();
-        } else if (program.columnLowercase) {
+        } else if (program.lowercase) {
           targetCell = targetCell.toLowerCase();
         }
         writeFile(program.tmpDirectory+'/'+path.basename(inputFile), columnNames, targetCell, data);
