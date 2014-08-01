@@ -150,10 +150,12 @@ if (cluster.isMaster) {
         logVerbose(inputFile, 'using column', program.column, '(#'+targetIndex+')');
       } else {
         var targetCell = data[targetIndex];
-        if (program.uppercase) {
-          targetCell = targetCell.toUpperCase();
-        } else if (program.lowercase) {
-          targetCell = targetCell.toLowerCase();
+        if (typeof targetCell !== 'undefined') {
+          if (program.uppercase) {
+            targetCell = targetCell.toUpperCase();
+          } else if (program.lowercase) {
+            targetCell = targetCell.toLowerCase();
+          }
         }
         writeFile(program.tmpDirectory+'/'+path.basename(inputFile), columnNames, targetCell, data);
       }
