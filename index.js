@@ -97,7 +97,7 @@ if (cluster.isMaster) {
     worker.on('exit', function(code, signal){
       console.log('Worker closed ('+fileName+') code '+code);
       if (code != 0) {
-        exit(1);
+        process.exit(1);
       }
       callback();
     });
