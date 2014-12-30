@@ -85,7 +85,51 @@ if (program.outputDelimiter.toLowerCase() == 'tab') {
   program.outputDelimiter = '\t';
 }
 
-if (cluster.isMaster) {
+if (inputFiles.length == 1 && !process.env.FILENAME) {
+  var columnNames, targetIndex;
+
+  var outputStreams = {};
+
+  var stream = csv.fromPath(inputFiles[0], {delimiter: program.delimiter});
+
+  var i = 0;
+  stream.on('record', function(data){
+    if (i == 0) {
+      columnNames = data;
+      targetIndex = columnNames.indexOf(program.column);
+
+      if (targetIndex == -1) {
+        throw new Error('Column "'+program.column+'" not found');
+      }
+
+      logVerbose(inputFiles[0], 'using column', program.column, '(#'+targetIndex+')');
+    } else {
+      var targetCell = data[targetIndex];
+      if (typeof targetCell !== 'undefined') {
+        if (program.uppercase) {
+          targetCell = targetCell.toUpperCase();
+        } else if (program.lowercase) {
+          targetCell = targetCell.toLowerCase();
+        }
+      }
+
+      if (typeof outputStreams[targetCell] == 'undefined') {
+        outputStreams[targetCell] = csv.createWriteStream();
+        outputStreams[targetCell].pipe(fs.createWriteStream(program.outputDirectory+'/'+targetCell+'.csv'));
+        outputStreams[targetCell].write(columnNames);
+      }
+
+      outputStreams[targetCell].write(data);
+    }
+    i++;
+  });
+
+  stream.on('end', function(){
+    for (var key in outputStreams) {
+      outputStreams[key].end();
+    }
+  });
+} else if (cluster.isMaster) {
 
   var fileQueue = async.queue(function(fileName, callback){
     console.log('Creating worker for '+fileName);
