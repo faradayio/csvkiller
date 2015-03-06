@@ -204,6 +204,9 @@ if (inputFiles.length == 1 && !process.env.FILENAME) {
           } else if (program.lowercase) {
             targetCell = targetCell.toLowerCase();
           }
+          if (program.truncate) {
+            targetCell = targetCell.substr(0, program.truncate);
+          }
         }
         writeFile(program.tmpDirectory+'/'+path.basename(inputFile), columnNames, targetCell, data);
       }
