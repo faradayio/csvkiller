@@ -24,6 +24,7 @@ program
   .option('-b, --buffer-size [characters]', 'Max characters in the output buffer [1000000]', parseInt, 1000000)
   .option('-u, --uppercase', 'Case insensitive column matching, write to OUTPUT.csv instead of Output.csv')
   .option('-l, --lowercase', 'Case insensitive column matching, write to output.csv instead of Output.csv')
+  .option('-t, --truncate [length]', 'Truncate file names to the first X number of characters', parseInt, 0)
   .option('-v, --verbose', 'Verbose output')
   .parse(process.env.ARGS ? JSON.parse(process.env.ARGS) : process.argv);
 
@@ -110,6 +111,9 @@ if (inputFiles.length == 1 && !process.env.FILENAME) {
           targetCell = targetCell.toUpperCase();
         } else if (program.lowercase) {
           targetCell = targetCell.toLowerCase();
+        }
+        if (program.truncate) {
+          targetCell = targetCell.substr(0, program.truncate);
         }
       }
 
